@@ -11,6 +11,15 @@ import (
 	_ "github.com/gorilla/websocket"
 )
 
+var clients = make(map[*websocket.Conn]bool) // connected clients
+var broadcast = make(chan Message)
+
+type Message struct {
+	Id       string `json:"id"`
+	Username string `json:"username"`
+	Message  string `json:"message"`
+}
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -22,24 +31,32 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	r.Get("/ws-handshake", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/ws", func(w http.ResponseWriter, r *http.Request) {
 		socket, err := upgrader.Upgrade(w, r, nil)
+		clients[socket] = true
 		if err != nil {
 			fmt.Println(err)
 		}
 		for {
 			// Vamos ler a mensagem recebida via Websocket
 			msgType, msg, err := socket.ReadMessage()
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			log.Println(msgType)
-			log.Println("Mensagem recebida: ", string(msg))
-			err = socket.WriteMessage(msgType, msg)
-			if err != nil {
-				fmt.Println(err)
-				return
+
+			for client, _ := range clients {
+
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+				log.Println("Mensagem recebida: ", string(msg))
+				logger := []byte{byte(len(clients))}
+				log.Println(logger)
+
+				err = client.WriteMessage(msgType, logger)
+				err = client.WriteMessage(msgType, msg)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
 			}
 		}
 	})
