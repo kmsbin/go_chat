@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/gorilla/websocket"
 	_ "github.com/gorilla/websocket"
+	uuid "github.com/satori/go.uuid"
 )
 
 var clients = make(map[*websocket.Conn]bool) // connected clients
@@ -31,8 +32,19 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
+	r.Get("/uuid", func(w http.ResponseWriter, r *http.Request) {
+		uuidToken := uuid.NewV4()
+		w.Write([]byte(uuidToken.String()))
+	})
 	r.Get("/ws", func(w http.ResponseWriter, r *http.Request) {
+		_ = uuid.NewV4().String()
+		newHub := newHub()
 		socket, err := upgrader.Upgrade(w, r, nil)
+		client := &client{
+			Id:     uuid.NewV4().String(),
+			Socket: socket,
+		}
+		newHub.Register(*client)
 		clients[socket] = true
 		if err != nil {
 			fmt.Println(err)
