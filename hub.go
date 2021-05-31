@@ -1,21 +1,51 @@
 package main
 
-type hub struct {
+import (
+	"log"
+)
+
+type Hub struct {
 	Registered   map[string]client
 	Unregistered map[string]client
+	History      map[string]string
 }
 
-func newHub() *hub {
-	return &hub{
+func newHub() *Hub {
+	return &Hub{
 		Registered:   make(map[string]client, 10),
 		Unregistered: make(map[string]client, 10),
+		History:      make(map[string]string, 10),
 	}
 }
 
-func (hub *hub) Register(newClient client) {
-	hub.Registered[newClient.Id] = newClient
+func (Hub *Hub) Register(newClient chan client) string {
+	syncClient, _ := <-newClient
+	Hub.Registered[syncClient.Id] = syncClient
+	return syncClient.Id
 }
-func (hub *hub) Unregister(client client) {
-	delete(hub.Registered, client.Id)
-	hub.Unregistered[client.Id] = client
+func (Hub *Hub) Unregister(clientChan chan client) {
+	newClient := <-clientChan
+
+	delete(Hub.Registered, newClient.Id)
+	Hub.Unregistered[newClient.Id] = newClient
+}
+func (Hub *Hub) Run() {
+	for {
+		for _, newClient := range Hub.Registered {
+
+			_, msg, err := newClient.Socket.ReadMessage()
+
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			log.Println("Mensagem recebida: ", string(msg))
+			// logger := []byte{byte(len(Hub.Registered))}
+			// log.Println(logger)
+			// newClient.Socket.WriteMessage(msgType, msg)
+
+			// log.Println(len(Hub.Registered))
+		}
+	}
 }
