@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 )
 
@@ -32,20 +33,17 @@ func (Hub *Hub) Unregister(clientChan chan client) {
 func (Hub *Hub) Run() {
 	for {
 		for _, newClient := range Hub.Registered {
-
-			_, msg, err := newClient.Socket.ReadMessage()
+			msgType, msg, err := newClient.Socket.ReadMessage()
 
 			if err != nil {
 				log.Println(err)
 				return
 			}
-
-			log.Println("Mensagem recebida: ", string(msg))
-			// logger := []byte{byte(len(Hub.Registered))}
-			// log.Println(logger)
-			// newClient.Socket.WriteMessage(msgType, msg)
-
-			// log.Println(len(Hub.Registered))
+			var message Message
+			_ = json.Unmarshal(msg, &message)
+			log.Println(message.Message)
+			Hub.Registered[message.IdReciever].Socket.WriteMessage(msgType, []byte(message.Message))
+			// log.Println("Mensagem recebida: ", msg)
 		}
 	}
 }

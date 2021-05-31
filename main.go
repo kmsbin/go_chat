@@ -14,12 +14,6 @@ import (
 var clients = make(map[*websocket.Conn]bool) // connected clients
 var broadcast = make(chan Message)
 
-type Message struct {
-	Id       string `json:"id"`
-	Username string `json:"username"`
-	Message  string `json:"message"`
-}
-
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -36,12 +30,14 @@ func main() {
 	r.Get("/enter-room", func(w http.ResponseWriter, r *http.Request) {
 		uuidToken := uuid.NewV4()
 		w.Write([]byte(uuidToken.String()))
+
+		http.Redirect(w, r, "localhost:8080/ws", http.StatusMovedPermanently)
 	})
-	r.Get("/ws", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/ws/{id}", func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		log.Println(id)
 		socket, _ := upgrader.Upgrade(w, r, nil)
-		log.Println("ASFDASDF")
-		clientId := newHub.Register(newClient(socket))
-		w.Write([]byte(clientId))
+		newHub.Register(newClient(socket, id))
 	})
 
 	http.ListenAndServe(":8080", r)

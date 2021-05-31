@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/gorilla/websocket"
 	_ "github.com/gorilla/websocket"
-	uuid "github.com/satori/go.uuid"
 )
 
 type event struct {
@@ -17,15 +16,15 @@ type client struct {
 	Sender bool
 }
 
-func newClient(socket *websocket.Conn) chan client {
+func newClient(socket *websocket.Conn, id string) chan client {
 	newChannelClient := make(chan client)
-	go clientChanSign(newChannelClient, socket)
+	go clientChanSign(newChannelClient, socket, id)
 	return newChannelClient
 }
 
-func clientChanSign(newChannelClient chan client, socket *websocket.Conn) {
+func clientChanSign(newChannelClient chan client, socket *websocket.Conn, id string) {
 	newChannelClient <- client{
-		Id:     uuid.NewV4().String(),
+		Id:     id,
 		Socket: socket,
 		Sender: false,
 	}
