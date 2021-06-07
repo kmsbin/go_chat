@@ -19,13 +19,13 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 	CheckOrigin:     func(r *http.Request) bool { return true },
 }
+var hub Hub = newHub()
 
 func main() {
-	newHub := newHub()
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	go newHub.Run()
+	go hub.Run()
 
 	r.Get("/enter-room", func(w http.ResponseWriter, r *http.Request) {
 		uuidToken := uuid.NewV4()
@@ -34,11 +34,18 @@ func main() {
 		http.Redirect(w, r, "localhost:8080/ws", http.StatusMovedPermanently)
 	})
 	r.Get("/ws/{id}", func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		log.Println(id)
-		socket, _ := upgrader.Upgrade(w, r, nil)
-		newHub.Register(newClient(socket, id))
+		serveWs(&hub, w, r)
 	})
 
 	http.ListenAndServe(":8080", r)
+}
+func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	socket, _ := upgrader.Upgrade(w, r, nil)
+	client := newClient(socket, id)
+	go client.ReadMessagePool()
+	go client.WriteMessagePool()
+	log.Println(id)
+
+	hub.Register(client)
 }
