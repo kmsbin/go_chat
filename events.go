@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"log"
-	"time"
 
 	"github.com/gorilla/websocket"
 	_ "github.com/gorilla/websocket"
@@ -22,64 +21,63 @@ type client struct {
 	Id      string
 	Socket  *websocket.Conn
 	Sender  chan bool
-	Message Message
+	Message chan Message
 }
 
 func (client *client) ReadMessagePool() {
 	for {
-		time.Sleep(tick * time.Second)
+		// time.Sleep(tick * time.Second)
+		// go func() {
 		log.Println("lendo")
-		go func() {
-			msgType, msg, _ := client.Socket.ReadMessage()
-			client.Sender <- true
-			_ = json.Unmarshal(msg, &client.Message)
-			client.Message.MsgType = msgType
+		msgType, msg, _ := client.Socket.ReadMessage()
+
+		var newMsg Message
+		_ = json.Unmarshal(msg, &newMsg)
+		newMsg.MsgType = msgType
+		if msgType > 0 {
+			client.Message <- newMsg
 			log.Println(client.Message)
-		}()
+			log.Println("New message: ", newMsg)
+		}
+
+		// }()
 	}
 }
 func (client *client) WriteMessagePool() {
 	for {
-		time.Sleep(tick * time.Second)
-		select {
-		case sender := <-client.Sender:
-			log.Println("opaa")
-			if sender {
-				go func() {
-
-					var msg Message = client.Message
-					log.Println(hub.Registered[string(msg.IdReciever)])
-					for key, value := range hub.Registered {
-						if key == msg.IdReciever {
-							log.Print("Matchhhh: ")
-							log.Println("Key: ", key, ", Value: ", value)
-							value.Socket.WriteMessage(msg.MsgType, []byte(msg.Message))
-						}
-
-					}
-				}()
+		// time.Sleep(tick * time.Second)
+		msg := <-client.Message
+		log.Println("opaa")
+		// if sender {
+		// log.Println(hub.Registered[string(msg.IdReciever)])
+		for key, value := range hub.Registered {
+			if key == msg.IdReciever {
+				log.Println("Key: ", key, ", Value: ", value)
+				value.Socket.WriteMessage(msg.MsgType, []byte(msg.Message))
 			}
+
 		}
+		// }
 	}
 }
-
 func newClient(socket *websocket.Conn, id string) client {
-	var senderChan chan bool = make(chan bool)
+	var senderChan chan bool = make(chan bool, 10)
 	go func() { senderChan <- false }()
 	client := client{
-		Id:     id,
-		Socket: socket,
-		Sender: senderChan,
+		Id:      id,
+		Socket:  socket,
+		Sender:  senderChan,
+		Message: make(chan Message),
 	}
 	return client
 }
 
-func clientChanSign(newChannelClient chan client, socket *websocket.Conn, id string) client {
-	var senderChan chan bool = make(chan bool)
-	senderChan <- false
-	return client{
-		Id:     id,
-		Socket: socket,
-		Sender: senderChan,
-	}
-}
+// func clientChanSign(newChannelClient chan client, socket *websocket.Conn, id string) client {
+// 	var senderChan chan bool = make(chan bool)
+// 	senderChan <- false
+// 	return client{
+// 		Id:     id,
+// 		Socket: socket,
+// 		Sender: senderChan,
+// 	}
+// }
