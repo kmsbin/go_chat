@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-
+	"os"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/gorilla/websocket"
@@ -37,7 +37,7 @@ func main() {
 		serveWs(&hub, w, r)
 	})
 
-	http.ListenAndServe(string(":"+os.Getenv("PORT"), r)
+	http.ListenAndServe(string(":"+os.Getenv("PORT")), r)
 }
 func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
