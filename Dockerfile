@@ -6,9 +6,10 @@ WORKDIR /app
 
 # COPY the source code as the last step
 COPY go.mod . 
-COPY go.sum .
 COPY . .
 # Get dependancies - will also be cached if we won't change mod/sum
+RUN go mod tidy
+RUN go mod vendor
 RUN go mod download
 
 # Build the binary
