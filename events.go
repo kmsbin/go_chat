@@ -34,6 +34,7 @@ func (client *client) ReadMessagePool() {
 		var newMsg Message
 		_ = json.Unmarshal(msg, &newMsg)
 		newMsg.MsgType = msgType
+		newMsg.IdSender = client.Id
 		if msgType > 0 {
 			client.Message <- newMsg
 			log.Println(client.Message)
@@ -53,7 +54,10 @@ func (client *client) WriteMessagePool() {
 		for key, value := range hub.Registered {
 			if key == msg.IdReciever {
 				log.Println("Key: ", key, ", Value: ", value)
-				value.Socket.WriteMessage(msg.MsgType, []byte(msg.Message))
+				parsedMsg, err := json.Marshal(msg)
+				if err == nil {
+					value.Socket.WriteMessage(msg.MsgType, parsedMsg)
+				}
 			}
 
 		}
