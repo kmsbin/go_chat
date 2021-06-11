@@ -5,5 +5,4 @@ type Message struct {
 	IdReciever string `json:"id-reciever"`
 	Username   string `json:"username"`
 	Message    string `json:"message"`
-	MsgType    int    `json:"msgtype,omitempty"`
 }

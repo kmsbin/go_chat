@@ -5,69 +5,61 @@ import (
 	"log"
 
 	"github.com/gorilla/websocket"
-	_ "github.com/gorilla/websocket"
 )
 
-const (
-	tick = 1
-)
-
-type event struct {
-	Message  []byte
-	Register client
+type Client struct {
+	Id       string          `json:"id"`
+	Username string          `json:"username"`
+	Socket   *websocket.Conn `json:"_"`
+	Sender   chan bool       `json:"_"`
+	Message  chan Message    `json:"_"`
 }
 
-type client struct {
-	Id      string
-	Socket  *websocket.Conn
-	Sender  chan bool
-	Message chan Message
-}
-
-func (client *client) ReadMessagePool() {
+func (client *Client) ReadMessagePool() {
 	for {
-		// time.Sleep(tick * time.Second)
-		// go func() {
 		log.Println("lendo")
-		msgType, msg, _ := client.Socket.ReadMessage()
+		msgType, msg, err := client.Socket.ReadMessage()
+
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("error: %v", err)
+			}
+			break
+		}
 
 		var newMsg Message
 		_ = json.Unmarshal(msg, &newMsg)
-		newMsg.MsgType = msgType
 		newMsg.IdSender = client.Id
-		if msgType > 0 {
+		if msgType == websocket.TextMessage {
 			client.Message <- newMsg
 			log.Println(client.Message)
 			log.Println("New message: ", newMsg)
 		}
 
-		// }()
 	}
 }
-func (client *client) WriteMessagePool() {
+func (client *Client) WriteMessagePool() {
 	for {
-		// time.Sleep(tick * time.Second)
-		msg := <-client.Message
+		msg, err := <-client.Message
+		if !err {
+			log.Println("error")
+		}
 		log.Println("opaa")
-		// if sender {
-		// log.Println(hub.Registered[string(msg.IdReciever)])
 		for key, value := range hub.Registered {
 			if key == msg.IdReciever {
-				log.Println("Key: ", key, ", Value: ", value)
 				parsedMsg, err := json.Marshal(msg)
 				if err == nil {
-					value.Socket.WriteMessage(msg.MsgType, parsedMsg)
+					value.Socket.WriteMessage(websocket.TextMessage, parsedMsg)
 				}
 			}
 
 		}
-		// }
 	}
 }
-func newClient(socket *websocket.Conn, id string) client {
+func newClient(socket *websocket.Conn, id string) Client {
 	var senderChan chan bool = make(chan bool, 10)
 	go func() { senderChan <- false }()
-	client := client{
+	client := Client{
 		Id:      id,
 		Socket:  socket,
 		Sender:  senderChan,

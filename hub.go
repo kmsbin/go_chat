@@ -1,26 +1,26 @@
 package main
 
 type Hub struct {
-	Registered   map[string]client
-	Unregistered map[string]client
-	History      map[string]string
+	Registered   map[string]Client `json:"registered-user,omitempty"`
+	Unregistered map[string]Client `json:"unregistered-user,omitempty"`
+	History      map[string]string `json:"-"`
 }
 
 func newHub() Hub {
 	return Hub{
-		Registered:   make(map[string]client, 10),
-		Unregistered: make(map[string]client, 10),
+		Registered:   make(map[string]Client, 10),
+		Unregistered: make(map[string]Client, 10),
 		History:      make(map[string]string, 10),
 	}
 }
 
-func (Hub *Hub) Register(syncClient client) string {
+func (Hub *Hub) Register(syncClient Client) string {
 	go syncClient.ReadMessagePool()
 	go syncClient.WriteMessagePool()
 	Hub.Registered[syncClient.Id] = syncClient
 	return syncClient.Id
 }
-func (Hub *Hub) Unregister(clientChan chan client) {
+func (Hub *Hub) Unregister(clientChan chan Client) {
 	newClient := <-clientChan
 
 	delete(Hub.Registered, newClient.Id)
