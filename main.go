@@ -37,7 +37,7 @@ func main() {
 		serveWs(&hub, w, r)
 	})
 
-	http.ListenAndServe(":8080", r)
+	http.ListenAndServe(string(":"+os.Getenv("PORT"), r)
 }
 func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
