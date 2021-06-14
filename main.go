@@ -30,10 +30,9 @@ var hub Hub = newHub()
 
 func init() {
 	_ = godotenv.Load(".env")
-}
-
-func main() {
-	db, err := gorm.Open(postgres.Open(os.Getenv("DBURI")), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(os.Getenv("DBURI")), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: false,
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,6 +40,9 @@ func main() {
 
 	mg.Migrate()
 	log.Println(db)
+}
+
+func main() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
