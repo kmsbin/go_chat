@@ -38,7 +38,7 @@ func init() {
 	}
 	mg := migration.Migration{GormConection: db}
 
-	mg.Migrate()
+	mg.Up()
 	log.Println(db)
 }
 
