@@ -6,11 +6,19 @@ import (
 	"net/http"
 	"os"
 
+	migration "go_chat/migrations"
+	_ "go_chat/model"
+
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	uuid "github.com/satori/go.uuid"
+
 	"github.com/gorilla/websocket"
 	_ "github.com/gorilla/websocket"
-	uuid "github.com/satori/go.uuid"
+	"github.com/joho/godotenv"
+	_ "github.com/joho/godotenv/autoload"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var upgrader = websocket.Upgrader{
@@ -20,7 +28,20 @@ var upgrader = websocket.Upgrader{
 }
 var hub Hub = newHub()
 
+func init() {
+	_ = godotenv.Load(".env")
+}
+
 func main() {
+	db, err := gorm.Open(postgres.Open(os.Getenv("DBURI")), &gorm.Config{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	mg := migration.Migration{GormConection: db}
+
+	mg.Migrate()
+	log.Println(db)
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -30,7 +51,6 @@ func main() {
 		uuidToken := uuid.NewV4()
 		w.Write([]byte(uuidToken.String()))
 
-		http.Redirect(w, r, "localhost:8080/ws", http.StatusMovedPermanently)
 	})
 	r.Get("/getAllUsers", getAllUsers)
 	r.Get("/ws/{id}", func(w http.ResponseWriter, r *http.Request) {
