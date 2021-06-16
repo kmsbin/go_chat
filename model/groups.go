@@ -2,8 +2,8 @@ package model
 
 import "gorm.io/gorm"
 
-type Groups struct {
+type Group struct {
 	gorm.Model
-	Name  string `json:"name"`
-	Users []User `gorm:"foreignKey:SecretKey"`
+	Name  string `gorm:"column:name"`
+	Users []User `gorm:"many2many:GroupsID"`
 }
