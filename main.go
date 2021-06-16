@@ -17,15 +17,20 @@ import (
 
 func init() {
 	_ = godotenv.Load(".env")
-}
-
-func main() {
-	db, err := gorm.Open(postgres.Open(os.Getenv("DBURI")), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(os.Getenv("DBURI")), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: false,
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
 	mg := migration.Migration{GormConection: db}
 
-	mg.Migrate()
+	http.ListenAndServe(string(":"+os.Getenv("PORT")), router())
+	mg.Up()
+	log.Println(db)
+}
+
+func main() {
+
 	http.ListenAndServe(string(":"+os.Getenv("PORT")), router())
 }
