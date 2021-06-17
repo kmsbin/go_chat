@@ -26,6 +26,7 @@ func router() *chi.Mux {
 
 	})
 	r.Get("/getAllUsers", getAllUsers)
+	r.Get("/getAllUsersById/{id}", getAllUsersById)
 	r.Get("/ws/{username}/{id}", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(&hub, w, r)
 	})
@@ -41,6 +42,20 @@ func getAllUsers(w http.ResponseWriter, _ *http.Request) {
 
 	for _, client := range hub.Registered {
 		users.Clients = append(users.Clients, client)
+	}
+	activeUsersJson, _ := json.Marshal(users)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(activeUsersJson)
+}
+func getAllUsersById(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	users := ActiveUsers{Clients: make([]Client, 0)}
+
+	for _, client := range hub.Registered {
+		if client.Id != id {
+			users.Clients = append(users.Clients, client)
+		}
 	}
 	activeUsersJson, _ := json.Marshal(users)
 	w.Header().Set("Content-Type", "application/json")
