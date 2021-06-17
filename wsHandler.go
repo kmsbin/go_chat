@@ -20,10 +20,9 @@ var upgrader = websocket.Upgrader{
 func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	username := chi.URLParam(r, "username")
+	log.Println(username)
 	socket, _ := upgrader.Upgrade(w, r, nil)
 	client := newClient(socket, id, username)
-	go client.ReadMessagePool()
-	go client.WriteMessagePool()
 	log.Println(id)
 
 	hub.Register(client)
@@ -51,8 +50,9 @@ func (client *Client) ReadMessagePool() {
 
 		var newMsg Message
 		_ = json.Unmarshal(msg, &newMsg)
-		newMsg.IdSender = client.Id
 		if msgType == websocket.TextMessage {
+			newMsg.Username = client.Username
+			newMsg.IdSender = client.Id
 			client.Message <- newMsg
 			log.Println(client.Message)
 			log.Println("New message: ", newMsg)
@@ -80,13 +80,11 @@ func (client *Client) WriteMessagePool() {
 }
 func newClient(socket *websocket.Conn, id string, username string) Client {
 	var senderChan chan bool = make(chan bool, 10)
-	go func() { senderChan <- false }()
-	client := Client{
+	return Client{
 		Id:       id,
 		Socket:   socket,
 		Sender:   senderChan,
 		Message:  make(chan Message),
 		Username: username,
 	}
-	return client
 }

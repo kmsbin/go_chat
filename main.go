@@ -23,10 +23,8 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	mg := migration.Migration{GormConection: db}
-
-	http.ListenAndServe(string(":"+os.Getenv("PORT")), router())
-	mg.Up()
+	_ = migration.Migration{GormConection: db}
+	// mg.Up()
 	log.Println(db)
 }
 

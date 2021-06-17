@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -22,7 +21,7 @@ func router() *chi.Mux {
 
 	})
 	r.Get("/getAllUsers", getAllUsers)
-	r.Get("/ws/{id}", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/ws/{username}/{id}", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(&hub, w, r)
 	})
 	return r
@@ -36,11 +35,9 @@ func getAllUsers(w http.ResponseWriter, _ *http.Request) {
 	users := ActiveUsers{Clients: make([]Client, 0)}
 
 	for _, client := range hub.Registered {
-		log.Println(client)
 		users.Clients = append(users.Clients, client)
 	}
 	activeUsersJson, _ := json.Marshal(users)
-	log.Println(activeUsersJson)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(activeUsersJson)
 }
