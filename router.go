@@ -17,7 +17,12 @@ func router() *chi.Mux {
 
 	r.Get("/enter-room", func(w http.ResponseWriter, r *http.Request) {
 		uuidToken := uuid.NewV4()
-		w.Write([]byte(uuidToken.String()))
+		response, _ := json.Marshal(struct {
+			Key string `json:"key"`
+		}{uuidToken.String()})
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(response))
 
 	})
 	r.Get("/getAllUsers", getAllUsers)
