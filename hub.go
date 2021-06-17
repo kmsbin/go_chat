@@ -20,11 +20,14 @@ func (Hub *Hub) Register(syncClient Client) string {
 	Hub.Registered[syncClient.Id] = syncClient
 	return syncClient.Id
 }
-func (Hub *Hub) Unregister(clientChan chan Client) {
-	newClient := <-clientChan
+func (Hub *Hub) Unregister(newClient Client) {
 
-	delete(Hub.Registered, newClient.Id)
-	Hub.Unregistered[newClient.Id] = newClient
+	for key := range Hub.Registered {
+		if key == newClient.Id {
+			delete(Hub.Registered, newClient.Id)
+			Hub.Unregistered[newClient.Id] = newClient
+		}
+	}
 }
 func (Hub *Hub) Run() {
 	// for {

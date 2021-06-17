@@ -20,10 +20,8 @@ var upgrader = websocket.Upgrader{
 func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	username := chi.URLParam(r, "username")
-	log.Println(username)
 	socket, _ := upgrader.Upgrade(w, r, nil)
 	client := newClient(socket, id, username)
-	log.Println(id)
 
 	hub.Register(client)
 }
@@ -45,6 +43,7 @@ func (client *Client) ReadMessagePool() {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
 			}
+			hub.Unregister(*client)
 			break
 		}
 
@@ -54,7 +53,6 @@ func (client *Client) ReadMessagePool() {
 			newMsg.Username = client.Username
 			newMsg.IdSender = client.Id
 			client.Message <- newMsg
-			log.Println(client.Message)
 			log.Println("New message: ", newMsg)
 		}
 
@@ -66,7 +64,6 @@ func (client *Client) WriteMessagePool() {
 		if !err {
 			log.Println("error")
 		}
-		log.Println("opaa")
 		for key, value := range hub.Registered {
 			if key == msg.IdReciever {
 				parsedMsg, err := json.Marshal(msg)
