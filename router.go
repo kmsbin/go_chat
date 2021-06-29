@@ -13,22 +13,27 @@ func router() *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+
 	go hub.Run()
 
-	r.Get("/enter-room", func(w http.ResponseWriter, r *http.Request) {
-		uuidToken := uuid.NewV4()
-		response, _ := json.Marshal(struct {
-			Key string `json:"key"`
-		}{uuidToken.String()})
+	r.Get("/login", GenerateToken)
+	r.Group(func(r chi.Router) {
+		r.Use(AuthMiddleware)
+		r.Get("/enter-room", func(w http.ResponseWriter, r *http.Request) {
+			uuidToken := uuid.NewV4()
+			response, _ := json.Marshal(struct {
+				Key string `json:"key"`
+			}{uuidToken.String()})
 
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(response))
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(response))
 
-	})
-	r.Get("/getAllUsers", getAllUsers)
-	r.Get("/getAllUsersById/{id}", getAllUsersById)
-	r.Get("/ws/{username}/{id}", func(w http.ResponseWriter, r *http.Request) {
-		serveWs(&hub, w, r)
+		})
+		r.Get("/getAllUsers", getAllUsers)
+		r.Get("/getAllUsersById/{id}", getAllUsersById)
+		r.Get("/ws/{username}/{id}", func(w http.ResponseWriter, r *http.Request) {
+			serveWs(&hub, w, r)
+		})
 	})
 	return r
 }
