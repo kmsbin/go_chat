@@ -23,8 +23,9 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	_ = migration.Migration{GormConection: db}
-	// mg.Up()
+	mg := migration.Migration{GormConection: db}
+	mg.Up()
+	mg.Seed()
 	log.Println(db)
 }
 

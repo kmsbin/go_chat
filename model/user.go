@@ -7,6 +7,6 @@ type User struct {
 	ImageUrl  string  `gorm:"column:image_url"`
 	Name      string  `gorm:"column:name"`
 	Groups    []Group `gorm:"many2many:GroupsID"`
-	SecretKey uint    `gorm:"unique"`
+	SecretKey string
 	gorm.Model
 }

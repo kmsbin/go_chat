@@ -5,9 +5,7 @@ import (
 	"log"
 )
 
-func (migration *Migration) Up() {
-	migration.GormConection.AutoMigrate(&model.User{})
-	migration.GormConection.AutoMigrate(&model.Group{})
+func (migration *Migration) Seed() {
 
 	user := &model.User{
 		ImageUrl:  "https://asgsadg",
@@ -17,4 +15,5 @@ func (migration *Migration) Up() {
 	response := migration.GormConection.Statement.DB.Create(user)
 
 	log.Println(response)
+
 }

@@ -14,8 +14,6 @@ import (
 	_ "github.com/dgrijalva/jwt-go"
 )
 
-type AuthError error
-
 type LoginClaims struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
