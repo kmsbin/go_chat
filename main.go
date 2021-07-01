@@ -5,8 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	migration "go_chat/migrations"
-	_ "go_chat/model"
+	_ "go_chat/entities"
 
 	_ "github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
@@ -23,9 +22,9 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	mg := migration.Migration{GormConection: db}
-	mg.Up()
-	mg.Seed()
+	// mg := migration.Migration{GormConection: db}
+	// mg.Up()
+	// mg.Seed()
 	log.Println(db)
 }
 

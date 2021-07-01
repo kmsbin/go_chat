@@ -1,15 +1,15 @@
 package migration
 
 import (
-	"go_chat/model"
+	"go_chat/entities"
 	"log"
 )
 
 func (migration *Migration) Up() {
-	migration.GormConection.AutoMigrate(&model.User{})
-	migration.GormConection.AutoMigrate(&model.Group{})
+	migration.GormConection.AutoMigrate(&entities.User{})
+	migration.GormConection.AutoMigrate(&entities.Group{})
 
-	user := &model.User{
+	user := &entities.User{
 		ImageUrl:  "https://asgsadg",
 		Name:      "aksdfkas",
 		SecretKey: "563456",

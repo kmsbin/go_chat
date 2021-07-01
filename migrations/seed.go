@@ -1,13 +1,13 @@
 package migration
 
 import (
-	"go_chat/model"
+	"go_chat/entities"
 	"log"
 )
 
 func (migration *Migration) Seed() {
 
-	user := &model.User{
+	user := &entities.User{
 		ImageUrl:  "https://asgsadg",
 		Name:      "aksdfkas",
 		SecretKey: "563456",

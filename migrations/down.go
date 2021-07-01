@@ -1,10 +1,10 @@
 package migration
 
 import (
-	"go_chat/model"
+	"go_chat/entities"
 )
 
 func (migration *Migration) Down() {
-	migration.GormConection.Migrator().DropTable(&model.User{})
-	migration.GormConection.Migrator().DropTable(&model.Group{})
+	migration.GormConection.Migrator().DropTable(&entities.User{})
+	migration.GormConection.Migrator().DropTable(&entities.Group{})
 }
