@@ -30,19 +30,19 @@ func (Hub *Hub) Unregister(newClient Client) {
 	}
 }
 func (Hub *Hub) Run() {
-	// for {
-	// for _, newClient := range Hub.Registered {
-	// 	msgType, msg, err := newClient.Socket.ReadMessage()
+	for {
+		for _, newClient := range Hub.Registered {
+			msgType, msg, err := newClient.Socket.ReadMessage()
 
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 		return
-	// 	}
-	// 	var message Message
-	// 	_ = json.Unmarshal(msg, &message)
-	// 	log.Println(message.Message)
-	// 	Hub.Registered[message.IdReciever].Socket.WriteMessage(msgType, []byte(message.Message))
-	// 	// log.Println("Mensagem recebida: ", msg)
-	// }
-	// }
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			var message Message
+			_ = json.Unmarshal(msg, &message)
+			log.Println(message.Message)
+			Hub.Registered[message.IdReciever].Socket.WriteMessage(msgType, []byte(message.Message))
+			// log.Println("Mensagem recebida: ", msg)
+		}
+	}
 }
